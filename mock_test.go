@@ -8,32 +8,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockUserService struct {
+type MockUserFetch struct {
 	mock.Mock
 }
 
-func (m *MockUserService) GetUserByID(id int) (User, error) {
+func (m MockUserFetch) GetUserByID(id int) (User, error) {
 	args := m.Called(id)
 	return args.Get(0).(User), args.Error(1)
 }
 
-func TestUserFetcher(t *testing.T) {
+func TestFetchUser(t *testing.T) {
 	t.Run("Valid User", func(t *testing.T) {
-		mockUserService := new(MockUserService)
-		mockUserService.On("GetUserByID", 1).Return(User{ID: 1, Name: "Vamsi"}, nil)
+		mockUserService := new(MockUserFetch)
+		mockUserService.On("GetUserByID", 1).Return(User{ID: 1, Name: "John"})
+
 		result, err := FetchUserDetails(mockUserService, 1)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "User: Vamsi", result)
+		assert.Equal(t, "User: John", result)
+
 		mockUserService.AssertExpectations(t)
 	})
 
 	t.Run("Invalid User", func(t *testing.T) {
-		mockService := new(MockUserService)
-		mockService.On("GetUserByID", 2).Return(User{}, errors.New("User Not Found"))
-		result, err := FetchUserDetails(mockService, 2)
+		mockUserService := new(MockUserFetch)
+		mockUserService.On("GetUserByID", 2).Return(User{}, errors.New("USer Not Found"))
+		result, err := FetchUserDetails(mockUserService, 2)
 		assert.Error(t, err)
 		assert.Equal(t, "", result)
-		mockService.AssertExpectations(t)
+		mockUserService.AssertExpectations(t)
 	})
 }
